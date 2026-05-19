@@ -5,10 +5,9 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   Alert,
+  Platform,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 import {useNavigation} from '@react-navigation/native';
 import {colors, spacing, fontSize, borderRadius, shadow} from '../../theme';
 import {ocrService, OCRResult} from '../../services/ocrService';
@@ -24,29 +23,39 @@ export default function OCRScanner() {
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [recognizedWords, setRecognizedWords] = useState<string[]>([]);
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
+  const [isWebVoiceAvailable, setIsWebVoiceAvailable] = useState(false);
 
-  // 请求相册权限
+  // 检查 Web 语音识别可用性
   useEffect(() => {
-    (async () => {
-      const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('权限提示', '需要相册权限来选择图片');
-      }
-    })();
+    if (Platform.OS === 'web') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      setIsWebVoiceAvailable(!!SpeechRecognition);
+    }
   }, []);
 
   const handleSelectImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setSelectedImage(result.assets[0].uri || null);
+    if (Platform.OS === 'web') {
+      // Web 平台使用文件选择器
+      try {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e: any) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event: any) => {
+              setSelectedImage(event.target.result);
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      } catch (error) {
+        Alert.alert('错误', '选择图片失败');
       }
-    } catch (error) {
-      Alert.alert('错误', '选择图片失败');
+    } else {
+      Alert.alert('提示', 'OCR 功能需要在移动端使用 expo-image-picker');
     }
   };
 
@@ -60,8 +69,7 @@ export default function OCRScanner() {
     setRecognizedWords([]);
 
     try {
-      // 实际使用时需要将图片转为 Base64
-      // 这里使用模拟数据
+      // 模拟识别结果 - Web 版本使用模拟数据
       const result: OCRResult = await ocrService.mockRecognize();
 
       if (result.error) {
@@ -145,15 +153,16 @@ export default function OCRScanner() {
           style={styles.imagePicker}
           onPress={handleSelectImage}>
           {selectedImage ? (
-            <Image
-              source={{uri: selectedImage}}
-              style={styles.selectedImage}
-              resizeMode="contain"
-            />
+            <View style={styles.selectedImageContainer}>
+              <img src={selectedImage} alt="Selected" style={styles.webImage} />
+            </View>
           ) : (
             <View style={styles.placeholderContainer}>
               <Text style={styles.placeholderEmoji}>📷</Text>
               <Text style={styles.placeholderText}>点击选择图片</Text>
+              {Platform.OS === 'web' && (
+                <Text style={styles.hintText}>Web 版本演示</Text>
+              )}
             </View>
           )}
         </TouchableOpacity>
@@ -235,9 +244,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...shadow.medium,
   },
-  selectedImage: {
+  selectedImageContainer: {
     width: '100%',
     height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  webImage: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain',
   },
   placeholderContainer: {
     flex: 1,
@@ -251,6 +269,11 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: fontSize.lg,
     color: colors.textLight,
+  },
+  hintText: {
+    fontSize: fontSize.md,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   actionSection: {
     padding: spacing.lg,
