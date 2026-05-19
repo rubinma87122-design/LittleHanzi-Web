@@ -26,10 +26,8 @@
       "package": "com.littlehanzi.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-av"
-    ]
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    }
   }
 }
