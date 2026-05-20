@@ -27,7 +27,8 @@
       "package": "com.littlehanzi.app"
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "publicPath": "/LittleHanzi-Web/"
     }
   }
 }

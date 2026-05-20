@@ -36,6 +36,11 @@ jobs:
       - name: Build Web
         run: npx expo export --platform web
 
+      - name: Fix paths for GitHub Pages
+        run: |
+          sed -i 's|src="/_expo/|src="./_expo/|g' dist/index.html
+          sed -i 's|href="/_expo/|href="./_expo/|g' dist/index.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
