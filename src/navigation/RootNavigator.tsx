@@ -1,6 +1,7 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import React from 'react';
+import React, {useEffect} from 'react';
+import {Platform} from 'react-native';
 import {View, Text} from 'react-native';
 
 import {colors} from '../theme';
@@ -20,6 +21,12 @@ import MemoryGame from '../screens/Child/MemoryGame';
 import DragDropGame from '../screens/Child/DragDropGame';
 import ResultScreen from '../screens/Child/ResultScreen';
 import ReviewCompleteScreen from '../screens/Child/ReviewCompleteScreen';
+
+// Web 兼容性：确保 react-native-screens 在 Web 上正确初始化
+if (Platform.OS === 'web') {
+  const {enableScreens} = require('react-native-screens');
+  enableScreens(false);
+}
 
 export type RootStackParamList = {
   ChildWelcome: undefined;
@@ -112,7 +119,7 @@ export default function RootNavigator() {
         screenOptions={{
           headerShown: false,
           contentStyle: {backgroundColor: colors.background},
-          animation: 'slide_from_right',
+          animation: 'default',
         }}>
         {/* 儿童模式 */}
         <Stack.Screen name="ChildWelcome" component={ChildWelcomeScreen} />
