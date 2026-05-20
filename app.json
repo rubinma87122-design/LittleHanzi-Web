@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "entryPoint": "index.js",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -26,8 +27,7 @@
       "package": "com.littlehanzi.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "favicon": "./assets/favicon.png"
     }
   }
 }
